@@ -47,10 +47,43 @@
         }
         .green-btn:hover { background-color: #218838; }
 
-        /* Style menu i powiadomień */
-        .nav-item { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; transition: opacity 0.3s; white-space: nowrap; }
+        /* Pasek nawigacji i dynamiczny dzwoneczek hakerski */
+        .nav-item { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; transition: opacity 0.3s; white-space: nowrap; position: relative; }
         .nav-item:hover { opacity: 0.8; }
         .nav-text { font-size: 16px; font-weight: 500; }
+
+        /* Hakerski licznik alertów i kropka przy dzwoneczku */
+        .badge-notification {
+            display: none; /* Domyślnie ukryty, włączany przez JS przy wykryciu zagrożenia */
+            position: absolute;
+            top: -6px;
+            left: 12px;
+            background-color: #dc3545;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            text-align: center;
+            line-height: 16px;
+            box-shadow: 0 0 8px #dc3545;
+        }
+        .nav-item.alert-active svg {
+            color: #dc3545;
+            animation: bell-shake 0.5s infinite secondary;
+            filter: drop-shadow(0 0 6px #dc3545);
+        }
+
+        @keyframes bell-shake {
+            0% { transform: rotate(0); }
+            15% { transform: rotate(10deg); }
+            30% { transform: rotate(-10deg); }
+            45% { transform: rotate(5deg); }
+            60% { transform: rotate(-5deg); }
+            75% { transform: rotate(2deg); }
+            100% { transform: rotate(0); }
+        }
 
         /* Główny układ aplikacji */
         .app-body {
@@ -208,17 +241,16 @@
         .ai-input-zone input { flex: 1; background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 8px; color: white; font-size: 13px; }
         .ai-input-zone button { background-color: #28a745; color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-        /* Dedykowany, niezależny techniczny napis pod oknem chatu */
+        /* Styl dla technicznego podpisu pod chatem */
         .ai-footer-note {
-            font-size: 12px;
+            font-size: 11px;
             color: rgba(255, 255, 255, 0.4);
-            margin-top: 8px;
+            margin-top: 5px;
             margin-bottom: 15px;
             text-align: center;
             width: 100%;
             max-width: 500px;
             letter-spacing: 0.5px;
-            font-weight: 500;
         }
 
         /* Dolny status */
@@ -265,7 +297,9 @@
             <button class="green-btn">Darmowa wersja Pro</button>
         </div>
         <div class="right-section">
-            <div class="nav-item">
+            <!-- Dynamiczny dzwoneczek telemetryczny z ID i elementem powiadomień -->
+            <div class="nav-item" id="bellNotification" onclick="clearAlerts()">
+                <div class="badge-notification" id="alertCount">0</div>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
                     <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
@@ -339,11 +373,11 @@
                 </div>
             </div>
 
-            <!-- Panel Chatu AI (W 100% stabilny, bez blokad żądań chmurowych) -->
+            <!-- Panel Chatu AI -->
             <div class="sign-protection-view" id="viewSigns" style="display: block;">
                 <div class="ai-sign-panel">
                     <div class="ai-sign-logs" id="signChatBox">
-                        <div class="ai-msg system">🤖 Patrzałki AI: Inteligentny asystent ochrony przed znakami drogowymi uruchomiony pomyślnie. Napisz do mnie normalne słowa (np. „cześć” lub „jak tam?”)!</div>
+                        <div class="ai-msg system">🤖 Patrzałki AI: Inteligentny asystent ochrony przed znakami uruchomiony pomyślnie. Czekam na Twoje wiadomości, kierowco!</div>
                     </div>
                     <div class="ai-input-zone">
                         <input type="text" id="signInput" placeholder="Napisz coś do systemu Patrzałki AI..." onkeydown="if(event.key === 'Enter') triggerSignAI()">
@@ -352,7 +386,7 @@
                 </div>
             </div>
 
-            <!-- Twój oczekiwany podpis pod chatem -->
+            <!-- Podpis techniczny oddzielony na dole ekranu -->
             <div class="ai-footer-note" id="aiFooterNote" style="display: block;">
                 Patrzałki AI - powered by Llama 3
             </div>
@@ -360,13 +394,15 @@
             <!-- Dolny status -->
             <div class="status-badge">
                 <div class="pulse-dot"></div>
-                <span id="statusText">Moduł AI Znaków: Stabilny</span>
+                <span id="statusText">Moduł AI Znaków: Aktywny</span>
             </div>
         </main>
 
     </div>
 
     <script>
+        let pendingAlerts = 0; // Globalny licznik nieprzeczytanych zagrożeń
+
         function showView(viewName, element) {
             document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
             element.classList.add('active');
@@ -384,7 +420,7 @@
                 cameraView.style.display = "none";
                 signsView.style.display = "block";
                 footerNote.style.display = "block";
-                statusText.innerText = "Moduł AI Znaków: Stabilny";
+                statusText.innerText = "Moduł AI Znaków: Aktywny";
             } else {
                 cameraView.style.display = "block";
                 signsView.style.display = "none";
@@ -398,7 +434,7 @@
             }
         }
 
-        // WYDAJNY SILNIK SYMULACYJNY LLAMA 3 - 100% BEZPIECZNY I NIEZALEŻNY OD BLOKAD SIECIOWYCH
+        // HAKERSKA INTEGRACJA TELEMETRYCZNA SYSTEMU POWIADOMIEŃ O ZAGROŻENIACH
         async function triggerSignAI() {
             const inputZone = document.getElementById('signInput');
             const chatBox = document.getElementById('signChatBox');
@@ -407,32 +443,32 @@
 
             if (rawText === "") return;
 
-            // Dodanie wiadomości kierowcy
+            // Wiadomość użytkownika
             chatBox.innerHTML += `<div class="ai-msg user">${rawText}</div>`;
             inputZone.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Dokładny komunikat przetwarzania
+            // Zmiana tekstu oczekiwania
             const tempLoadingId = "load-" + Date.now();
-            chatBox.innerHTML += `<div class="ai-msg system" id="${tempLoadingId}">🤖 Patrzałki AI przetwarza zapytanie...</div>`;
+            chatBox.innerHTML += `<div class="ai-msg system" id="${tempLoadingId}">🤖 Patrzałki AI przetworza zapytanie...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Sprawdzanie parametru właściciela w URL
+            // Kontrola klucza właściciela z paska adresu
             const urlParams = new URLSearchParams(window.location.search);
             const isOwner = (urlParams.get('key') === "d3027b4b");
 
             setTimeout(() => {
-                let aiAnswer = "Skanuję drogę przed nami... Rozumiem Twoje słowa, ale skupmy się na prowadzeniu auta. Możesz przetestować moją bazę danych wpisując np. 'stop', 'ustąp' lub 'ograniczenie'.";
+                let aiAnswer = "Wyszukuję informacje... Moje sensory działają stabilnie, ale skupmy się na drodze przed nami. Możesz przetestować detekcję wpisując np. 'stop', 'ustąp' lub 'ograniczenie'.";
+                let isDangerDetected = false; // Flag zagrożenia
 
-                // Odpowiedzi na normalne zwroty
+                // Konwersacja potoczna
                 if (text.includes("jak tam") || text.includes("co tam") || text.includes("co słychać") || text.includes("jak leci")) {
-                    aiAnswer = "Wszystkie komponenty systemu Patrzałki działają z maksymalną wydajnością! Analizuję otoczenie i pas ruchu bez żadnych opóźnień. Jak mijają kolejne kilometry?";
+                    aiAnswer = "Wszystkie komponenty systemu Patrzałki działają z maksymalną wydajnością! Analizuję otoczenie i pas ruchu bez opóźnień. Jak mijają kolejne kilometry?";
                 } else if (text === "cześć" || text === "hej" || text === "halo" || text === "siema" || text === "witaj" || text === "dzień dobry") {
                     aiAnswer = "Dzień dobry! Z tej strony asystent pokładowy Patrzałki AI. System wizyjny i zabezpieczenia są aktywne. W czym mogę pomóc podczas jazdy?";
                 } else if (text === "ok" || text === "dobrze" || text === "jasne" || text === "rozumiem" || text === "super") {
-                    aiAnswer = "Przyjąłem polecenie. Monitorowanie znaków pionowych i odległości od innych pojazdów odbywa się w trybie ciągłym.";
+                    aiAnswer = "Przyjąłem. Monitorowanie znaków i odległości od innych pojazdów odbywa się w trybie ciągłym.";
                 } 
-                // Dynamiczna i tajna tożsamość bota na pytanie "Kim jesteś"
                 else if (text.includes("czym jesteś") || text.includes("kim jesteś") || text.includes("co robisz")) {
                     if (isOwner) {
                         aiAnswer = "Jestem Twoim autorskim systemem sztucznej inteligencji Patrzałki AI. Analizuję trasę za pomocą algorytmów głębokiego uczenia i ostrzegam Cię przed znakami drogowymi.";
@@ -440,20 +476,32 @@
                         aiAnswer = "Jestem zaawansowanym systemem sztucznej inteligencji Patrzałki AI stworzonym przez Zloty651. Analizuję trasę za pomocą algorytmów głębokiego uczenia i ostrzegam kierowcę przed znakami drogowymi.";
                     }
                 }
-                // Logika znaków drogowych
+                // Analiza zagrożeń drogowych (Włączają alarm dzwoneczka)
                 else if (text.includes("stop")) {
                     aiAnswer = "⚠️ Wykryto znak B-20 (STOP). Radar bezpieczeństwa zaleca natychmiastowe zredukowanie prędkości i całkowite zatrzymanie przed linią.";
+                    isDangerDetected = true;
                 } else if (text.includes("ograniczenie") || text.includes("prędkość")) {
                     aiAnswer = "ℹ️ Rozpoznano pionowy znak ograniczenia prędkości. Komputer pokładowy dostosowuje bezpieczny dystans do panujących warunków.";
-                } else if (text.includes("ustąp") || text.includes("pierwszeństwo")) {
-                    aiAnswer = "🛑 Wykryto znak Ustąp Pierwszeństwa (A-7). Zwolnij i upewnij się, że skrzyżowanie jest całkowicie wolne przed wykonaniem manewru.";
+                    isDangerDetected = true;
+                } else if (text.includes("ustąp") || text.includes("pierwszeństwo") || text.includes("czerwone")) {
+                    aiAnswer = "🛑 Wykryto zagrożenie na skrzyżowaniu. Zwolnij i upewnij się, że droga jest wolna przed wykonaniem manewru.";
+                    isDangerDetected = true;
                 }
 
-                // Podmiana komunikatu ładowania na czystą odpowiedź systemu Patrzałki AI
+                // AKTUALIZACJA HAKERSKIEGO MODUŁU ALARMOWEGO NA GÓRNYM PASKU
+                if (isDangerDetected) {
+                    pendingAlerts++;
+                    const bell = document.getElementById('bellNotification');
+                    const badge = document.getElementById('alertCount');
+                    
+                    bell.classList.add('alert-active');
+                    badge.innerText = pendingAlerts;
+                    badge.style.display = "block";
+                }
+
                 document.getElementById(tempLoadingId).innerHTML = `🤖 Patrzałki AI: ${aiAnswer}`;
                 chatBox.scrollTop = chatBox.scrollHeight;
-            }, 600); // 0.6 sekundy na symulację procesora
+            }, 600);
         }
-    </script>
-</body>
-</html>
+
+        //
