@@ -208,16 +208,17 @@
         .ai-input-zone input { flex: 1; background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 8px; color: white; font-size: 13px; }
         .ai-input-zone button { background-color: #28a745; color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-        /* Styl dla technicznego podpisu pod chatem */
+        /* Dedykowany, niezależny techniczny napis pod oknem chatu */
         .ai-footer-note {
-            font-size: 11px;
+            font-size: 12px;
             color: rgba(255, 255, 255, 0.4);
-            margin-top: 5px;
+            margin-top: 8px;
             margin-bottom: 15px;
             text-align: center;
             width: 100%;
             max-width: 500px;
             letter-spacing: 0.5px;
+            font-weight: 500;
         }
 
         /* Dolny status */
@@ -338,11 +339,11 @@
                 </div>
             </div>
 
-            <!-- Panel Chatu AI -->
+            <!-- Panel Chatu AI (W 100% stabilny, bez blokad żądań chmurowych) -->
             <div class="sign-protection-view" id="viewSigns" style="display: block;">
                 <div class="ai-sign-panel">
                     <div class="ai-sign-logs" id="signChatBox">
-                        <div class="ai-msg system">🤖 Patrzałki AI: Inteligentny asystent ochrony przed znakami uruchomiony pomyślnie. Czekam na Twoje wiadomości, kierowco!</div>
+                        <div class="ai-msg system">🤖 Patrzałki AI: Inteligentny asystent ochrony przed znakami drogowymi uruchomiony pomyślnie. Napisz do mnie normalne słowa (np. „cześć” lub „jak tam?”)!</div>
                     </div>
                     <div class="ai-input-zone">
                         <input type="text" id="signInput" placeholder="Napisz coś do systemu Patrzałki AI..." onkeydown="if(event.key === 'Enter') triggerSignAI()">
@@ -351,7 +352,7 @@
                 </div>
             </div>
 
-            <!-- Podpis techniczny oddzielony na dole ekranu -->
+            <!-- Twój oczekiwany podpis pod chatem -->
             <div class="ai-footer-note" id="aiFooterNote" style="display: block;">
                 Patrzałki AI - powered by Llama 3
             </div>
@@ -359,7 +360,7 @@
             <!-- Dolny status -->
             <div class="status-badge">
                 <div class="pulse-dot"></div>
-                <span id="statusText">Moduł AI Znaków: Aktywny</span>
+                <span id="statusText">Moduł AI Znaków: Stabilny</span>
             </div>
         </main>
 
@@ -383,7 +384,7 @@
                 cameraView.style.display = "none";
                 signsView.style.display = "block";
                 footerNote.style.display = "block";
-                statusText.innerText = "Moduł AI Znaków: Aktywny";
+                statusText.innerText = "Moduł AI Znaków: Stabilny";
             } else {
                 cameraView.style.display = "block";
                 signsView.style.display = "none";
@@ -397,7 +398,7 @@
             }
         }
 
-        // UKRYTA INTEGRACJA Z KRYPTOGRAFICZNYM HASŁEM KROK PO KROKU
+        // WYDAJNY SILNIK SYMULACYJNY LLAMA 3 - 100% BEZPIECZNY I NIEZALEŻNY OD BLOKAD SIECIOWYCH
         async function triggerSignAI() {
             const inputZone = document.getElementById('signInput');
             const chatBox = document.getElementById('signChatBox');
@@ -406,35 +407,32 @@
 
             if (rawText === "") return;
 
-            // Wiadomość użytkownika
+            // Dodanie wiadomości kierowcy
             chatBox.innerHTML += `<div class="ai-msg user">${rawText}</div>`;
             inputZone.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Zmiana tekstu oczekiwania na żądany komunikat
+            // Dokładny komunikat przetwarzania
             const tempLoadingId = "load-" + Date.now();
-            chatBox.innerHTML += `<div class="ai-msg system" id="${tempLoadingId}">🤖 Patrzałki AI przetwasza zapytanie...</div>`;
+            chatBox.innerHTML += `<div class="ai-msg system" id="${tempLoadingId}">🤖 Patrzałki AI przetwarza zapytanie...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // SPRAWDZANIE KLUCZA: Pobieramy parametr "?key=" z paska adresu przeglądarki
+            // Sprawdzanie parametru właściciela w URL
             const urlParams = new URLSearchParams(window.location.search);
-            const userKey = urlParams.get('key');
-            
-            // To jest bezpieczny skrót, którego nikt nie odszyfruje wstecz na GitHubie!
-            const isOwner = (userKey === "d3027b4b");
+            const isOwner = (urlParams.get('key') === "d3027b4b");
 
             setTimeout(() => {
-                let aiAnswer = "Wyszukuję informacje... Moje sensory działają stabilnie, ale skupmy się na drodze przed nami. Możesz przetestować detekcję wpisując np. 'stop', 'ustąp' lub 'ograniczenie'.";
+                let aiAnswer = "Skanuję drogę przed nami... Rozumiem Twoje słowa, ale skupmy się na prowadzeniu auta. Możesz przetestować moją bazę danych wpisując np. 'stop', 'ustąp' lub 'ograniczenie'.";
 
-                // Odpowiedzi na potoczne słowa
+                // Odpowiedzi na normalne zwroty
                 if (text.includes("jak tam") || text.includes("co tam") || text.includes("co słychać") || text.includes("jak leci")) {
-                    aiAnswer = "Wszystkie komponenty systemu Patrzałki działają z maksymalną wydajnością! Analizuję otoczenie i pas ruchu bez opóźnień. Jak mijają kolejne kilometry?";
+                    aiAnswer = "Wszystkie komponenty systemu Patrzałki działają z maksymalną wydajnością! Analizuję otoczenie i pas ruchu bez żadnych opóźnień. Jak mijają kolejne kilometry?";
                 } else if (text === "cześć" || text === "hej" || text === "halo" || text === "siema" || text === "witaj" || text === "dzień dobry") {
                     aiAnswer = "Dzień dobry! Z tej strony asystent pokładowy Patrzałki AI. System wizyjny i zabezpieczenia są aktywne. W czym mogę pomóc podczas jazdy?";
                 } else if (text === "ok" || text === "dobrze" || text === "jasne" || text === "rozumiem" || text === "super") {
-                    aiAnswer = "Przyjąłem. Monitorowanie znaków i odległości od innych pojazdów odbywa się w trybie ciągłym.";
+                    aiAnswer = "Przyjąłem polecenie. Monitorowanie znaków pionowych i odległości od innych pojazdów odbywa się w trybie ciągłym.";
                 } 
-                // Dynamiczna i bezpieczna tożsamość bota na pytanie "Kim jesteś"
+                // Dynamiczna i tajna tożsamość bota na pytanie "Kim jesteś"
                 else if (text.includes("czym jesteś") || text.includes("kim jesteś") || text.includes("co robisz")) {
                     if (isOwner) {
                         aiAnswer = "Jestem Twoim autorskim systemem sztucznej inteligencji Patrzałki AI. Analizuję trasę za pomocą algorytmów głębokiego uczenia i ostrzegam Cię przed znakami drogowymi.";
@@ -454,7 +452,7 @@
                 // Podmiana komunikatu ładowania na czystą odpowiedź systemu Patrzałki AI
                 document.getElementById(tempLoadingId).innerHTML = `🤖 Patrzałki AI: ${aiAnswer}`;
                 chatBox.scrollTop = chatBox.scrollHeight;
-            }, 600); // 0.6 sekundy na przetwarzanie
+            }, 600); // 0.6 sekundy na symulację procesora
         }
     </script>
 </body>
